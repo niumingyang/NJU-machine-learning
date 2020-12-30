@@ -1,0 +1,129 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,bm}
+\usepackage{amstext}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[colorlinks,linkcolor=blue]{hyperref}
+\usepackage{CTEX}
+
+
+\title{Introduction to Machine Learning\\Homework 2}
+\author{181860066 牛铭杨}
+\begin{document}
+	\maketitle
+	\numberwithin{equation}{section}
+	\section{[30pts] Multi-Label Logistic Regression}
+    In multi-label problem, each instance $\bm{x}$ has a label set $\bm{y}=\{y_1,y_2,...,y_L\}$ and each label $y_i\in\{0,1\}, \forall 1 \leq i \leq L$. Assume the post probability $p(\bm{y} \mid \bm{x})$ follows the conditional independence:\\
+    \begin{equation}
+    p(\bm{y} \mid \bm{x})=\prod\limits_{i=1}^L p(y_i \mid \bm{x}).
+    \end{equation}
+    Please use the logistic regression method to handle the following questions.\\
+    (1) [15pts] Please give the log-likelihood function of your logistic regression model;\\
+        给定数据集$\left\{\bm{x_i}, \bm{y_i}\right\}_{i=1}^m$,对数似然函数为
+        \begin{equation}
+            l({\bm w}, b) = \sum_{i=1}^m {\rm ln} p({\bm y_i}|{\bm x_i};{\bm w},b)
+                         = \sum_{j=1}^L \sum_{i=1}^m {\rm ln} p({y_{ij}}|{\bm x_i};{\bm w},b)
+        \end{equation}
+        其中${\bm y_{ij}}$是第$i$个样本在第$j$个标签上的属性\\
+        所以采用书上的记号，只需最小化
+        \begin{equation}
+            l({\bm \beta}) = \sum_{i=1}^m (-\sum_{j=1}^L y_{ij} {\bm \beta^T} {{\bm {\widehat x}_i}}
+            +L{\rm ln}(1+e^{{\bm \beta^T} {{\bm {\widehat x}_i}}}))
+        \end{equation}\\
+    
+    (2) [15pts] Please calculate the gradient of your log-likelihood function and show the parameters updating step using gradient descent.\\
+    似然函数的梯度为
+    \begin{equation}
+        \nabla l({\bm \beta}) = \sum_{i=1}^m {{\bm {\widehat x}_i}} (-\sum_{j=1}^L y_{ij}
+        +\frac{Le^{{\bm \beta^T}{{\bm {\widehat x}_i}}}}{1+e^{{\bm \beta^T}{{\bm {\widehat x}_i}}}})
+    \end{equation}
+    第$t+1$轮迭代解的更新公式为
+    \begin{equation}
+        \begin{aligned}
+            {\bm \beta}^{t+1}&={\bm \beta}^t-\gamma \nabla l({\bm \beta})
+            &={\bm \beta}^t-\gamma \sum_{i=1}^m {{\bm {\widehat x}_i}} (-\sum_{j=1}^L y_{ij}
+            +\frac{Le^{{\bm \beta^T}{{\bm {\widehat x}_i}}}}{1+e^{{\bm \beta^T}{{\bm {\widehat x}_i}}}})
+        \end{aligned}
+    \end{equation}
+    
+
+
+\numberwithin{equation}{section}
+\section{[70pts] Logistic Regression from scratch  }
+\subsection{实现细节}
+    我将这次实验分为3个阶段，导入训练数据，梯度下降/上升法训练出${\bm w} = ({\bm w}; b)$，根据测试集预测结果。
+
+    导入数据时使用两个矩阵$X,Y$来存储输入的样本和样本的标签，其中$X$每个行向量（样本）都加上一列，其值为1，以便计算。
+
+    然后使用$OvR$，训练$26$个分类器，在训练每个分类器时，作$Y$的深拷贝，并将当前识别的那类标注为正例，其他均为反例。
+    
+    使用梯度下降/上升法训练出每个分类器的${\bm w}$，测试时识别为概率最高的那一类。测试时，可以统计每个类别的混淆矩阵，之后总计即可算出查全率和查准率以及$F1$。
+
+    梯度下降/上升法每一步沿着梯度的方向前进一个步长的距离，经过多次迭代就可以近似最值。我们要最大化
+\begin{equation}
+    l({\bm w}) = \sum_{i=1}^m (y_{i} {\bm w^T} {{\bm {\widehat x}_i}}
+            -{\rm ln}(1+e^{{\bm w^T} {{\bm {\widehat x}_i}}}))
+\end{equation}
+对其求偏导，得到
+\begin{equation}
+    \begin{aligned}
+        \frac{\partial l({\bm w})}{\partial w_j} 
+        &= \sum_{i=1}^m (y_{i}  x_{ij}
+            -x_{ij} \frac{e^{{\bm w^T} {{\bm {\widehat x}_i}}}}{1+e^{{\bm w^T} {{\bm {\widehat x}_i}}}})\\
+        &= \sum_{i=1}^m x_{ij}(y_{i}  
+        - \frac{e^{{\bm w^T} {{\bm {\widehat x}_i}}}}{1+e^{{\bm w^T} {{\bm {\widehat x}_i}}}})\\
+        &= \sum_{i=1}^m x_{ij}(y_{i} - Sigmoid({\bm w^T} {{\bm {\widehat x}_i}}))\\
+    \end{aligned}
+\end{equation}
+所以有
+\begin{equation}
+    \begin{aligned}
+        \nabla l({\bm w}) = X^T(Y - Sigmoid(X {\bm w} ))
+    \end{aligned}
+\end{equation}
+而第$t+1$轮迭代解的更新公式为
+\begin{equation}
+    {\bm w}_{t+1} = {\bm w}_t + \gamma \nabla l({\bm w}) = {\bm w}_t + \gamma X^T(Y - Sigmoid(X {\bm w} ))\label{mylabel2}
+\end{equation}
+其中$\gamma$为步长，上面(\ref{mylabel2})即为我的实现参照的等式
+
+\subsection{优化与参数设置}
+实验的步长参数$\gamma$和循环次数$loops$是可以调节的，我通过调节这两个参数来使实验效果更好。
+
+一开始我设置$\gamma = 0.001， loops = 1000$，效果并不好，准确率只能达到百分四十几，
+然后我意识到可能并不需要循环这么多次，就已经收敛了，步长太大每次都越过了最值点。
+所以我根据循环次数来调节步长，经过不断实践，我发现，$loops < 400$时，$\gamma = 0.001$，
+$loops < 480$时，$\gamma = 0.0001$，$loops < 500$时，$\gamma = 0.00001$，
+这样是较好的选择，准确率可以达到百分之六十几，而仅仅增加循环次数效果并不是很理想。
+
+下面是实现的结果。
+
+\begin{table}[h]
+    \centering
+     \caption{Performance on test set.}
+     \vspace{2mm}
+    \label{tab:my_label}
+    \begin{tabular}{|c|c|}
+       \hline
+       Performance Metric & Value (\%) \\
+       \hline
+       accuracy & 66.95 \\
+       \hline
+       micro Precision  & 65.22\\
+       \hline
+       micro Recall & 66.15\\
+       \hline
+       micro $F_1$ & 65.68\\
+       \hline
+       macro Precision  & 65.23\\
+       \hline
+       macro Recall & 68.55\\
+       \hline
+       macro $F_1$ & 66.85\\
+       \hline
+    \end{tabular}
+
+\end{table}
+\end{document}
