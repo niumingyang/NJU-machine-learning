@@ -1,10 +1,10 @@
-from numpy import *
+import numpy as np
 import warnings
 
 warnings.filterwarnings('ignore')
 
 def sigmoid(x):
-    return 1.0/(1+exp(-x))
+    return 1.0/(1+np.exp(-x))
 
 X = list()
 Y = list()
@@ -20,9 +20,9 @@ for line in f.readlines():
     data.append(1.0)
     X.append(data)
     Y.append(int(y))
-X = mat(X)
-Y = mat(Y).transpose()
-m, n = shape(X)
+X = np.mat(X)
+Y = np.mat(Y).transpose()
+m, n = np.shape(X)
 
 # gradient descent
 for i in range(1, 27):
@@ -32,7 +32,7 @@ for i in range(1, 27):
             Y_local[j] = 0
         else:
             Y_local[j] = 1
-    w = ones((n,1))
+    w = np.ones((n,1))
     loops = 500
     for j in range(loops):
         if j >= 0:
@@ -48,8 +48,8 @@ for i in range(1, 27):
     if i == 1:
         W = w
     else:
-        W = append(W, w, axis = 1)
-W = mat(W)
+        W = np.append(W, w, axis = 1)
+W = np.mat(W)
 
 #load test set
 X_test = list()
@@ -64,16 +64,16 @@ for line in f.readlines():
     data.append(1.0)
     X_test.append(data)
     Y_test.append(int(y))
-X_test = mat(X_test)
-Y_test= mat(Y_test).transpose()
-p, q = shape(X_test)
+X_test = np.mat(X_test)
+Y_test= np.mat(Y_test).transpose()
+p, q = np.shape(X_test)
 
 # predict
-TP = zeros((26, 1))
-FN = zeros((26, 1))
-FP = zeros((26, 1))
-TN = zeros((26, 1))
-Y_predict = zeros((p, 1))
+TP = np.zeros((26, 1))
+FN = np.zeros((26, 1))
+FP = np.zeros((26, 1))
+TN = np.zeros((26, 1))
+Y_predict = np.zeros((p, 1))
 for i in range(0, p):
     f = []
     prob = -99999
